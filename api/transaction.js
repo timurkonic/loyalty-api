@@ -8,8 +8,7 @@ const post = async (req, res, next) => {
     try {
         switch (trns.type) {
             case 'paybonus':
-                const pb = await paybonus(trns.account, trns.amount, host, trns.cassa, trns.chek_sn);
-                return res.json(pb);
+                return res.json(await paybonus(trns.account, trns.amount, host, trns.cassa, trns.chek_sn));
             default:
                 return res.json({error: 'Неизвестный тип транзакции'});
         }
