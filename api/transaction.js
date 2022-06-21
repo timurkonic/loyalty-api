@@ -17,11 +17,11 @@ const post = (req, res, next) => {
     }
 }
 
-const paybonus = (account, amount, cassa, chek_sn, cb) => {
+const paybonus = (id, amount, cassa, chek_sn, cb) => {
     if (amount <= 0)
         return cb('Неверная сумма списания', null);
 
-    pool.query('select balance_bns, active, block, owner_filled from account where id = ?', [account], (err, rows) => {
+    pool.query('select balance_bns, active, block, owner_filled from account where id = ?', [id], (err, rows) => {
         if (err) {
             console.log(err);
             return cb('Internal error', null);
@@ -30,13 +30,15 @@ const paybonus = (account, amount, cassa, chek_sn, cb) => {
         if (rows.length === 0)
             return cb('Карта не найдена', null);
 
-        if (rows[0].active === 0 || rows[0].block !== 0)
+        const account = rows[0];
+
+        if (account.active === 0 || account.block !== 0)
             return cb('Карта заблокирована', null);
 
-        if (rows[0].balance_bns < amount)
+        if (account.balance_bns < amount)
             return cb('Недосточный баланс', null);
 
-        const new_balance = currency(rows[0].balance_bns).subtract(amount);
+        const new_balance = currency(account.balance_bns).subtract(amount);
 
         return cb(false, {new_balance: new_balance});
     });
