@@ -1,6 +1,7 @@
 {
     "name": "rkeeper-api",
     "version": "1.0.0",
+    "type": "module",
     "description": "GRINN Loyalty API",
     "author": "Timur Konic <timur.konic@gmail.com>",
     "license": "MIT",

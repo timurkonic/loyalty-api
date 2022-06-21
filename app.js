@@ -1,9 +1,9 @@
-const express = require('express');
+import express from 'express';
+import bodyParser from 'body-parser';
+import pool  from './db/pool.js';
+
 const app = express();
 const router = express.Router();
-const bodyParser = require('body-parser');
-
-const pool = require('./modules/pool.js');
 
 const processError = (err, req, res, next) => {
     if (err)

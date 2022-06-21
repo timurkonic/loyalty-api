@@ -1,4 +1,4 @@
-const mysql = require('mysql2');
+import mysql from 'mysql2';
 
 const dbhost = process.env.DBHOST || 'localhost';
 const dbname = process.env.DBNAME || 'loyalty';
@@ -7,7 +7,7 @@ const dbpass = process.env.DBPASS || 'password';
 
 console.log(`Using database ${dbuser}@${dbname} at ${dbhost}`);
 
-module.exports = mysql.createPool({
+export default mysql.createPool({
     host: dbhost,
     database: dbname,
     user: dbuser,
