@@ -1,4 +1,5 @@
 import pool from '../db/pool.js';
+import currency from 'currency.js';
 
 const post = (req, res, next) => {
     const trns = req.body;
@@ -35,7 +36,7 @@ const paybonus = (account, amount, cassa, chek_sn, cb) => {
         if (rows[0].balance_bns < amount)
             return cb('Недосточный баланс', null);
 
-        const new_balance = Math.round(rows[0].balance_bns - amount, 2);
+        const new_balance = currency(rows[0].balance_bns).subtract(amount);
 
         return cb(false, {new_balance: new_balance});
     });
