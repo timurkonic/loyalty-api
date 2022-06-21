@@ -1,4 +1,4 @@
-import mysql from 'mysql2';
+import mysql from 'mysql2/promise.js';
 
 const dbhost = process.env.DBHOST || 'localhost';
 const dbname = process.env.DBNAME || 'loyalty';

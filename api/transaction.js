@@ -1,48 +1,44 @@
 import pool from '../db/pool.js';
 import currency from 'currency.js';
 
-const post = (req, res, next) => {
+const post = async (req, res, next) => {
     const trns = req.body;
 
-    switch (trns.type) {
-        case 'paybonus':
-            paybonus(trns.account, trns.amount, trns.cassa, trns.chek_sn, (err, ret) => {
-                if (err)
-                    return res.json({error: err});
-                return res.json(ret);
-            });
-            break;
-        default:
-            return res.json({error: 'Неизвестный тип транзакции'});
+    try {
+        switch (trns.type) {
+            case 'paybonus':
+                const pb = await paybonus(trns.account, trns.amount, trns.cassa, trns.chek_sn);
+                return res.json(pb);
+            default:
+                return res.json({error: 'Неизвестный тип транзакции'});
+        }
+    }
+    catch {e} {
+        console.log(e);
+        return res.json({error: "Internal error"});
     }
 }
 
-const paybonus = (id, amount, cassa, chek_sn, cb) => {
+const paybonus = async (id, amount, cassa, chek_sn) => {
     if (amount <= 0)
-        return cb('Неверная сумма списания', null);
+        return {error: 'Неверная сумма списания'};
 
-    pool.query('select balance_bns, active, block, owner_filled from account where id = ?', [id], (err, rows) => {
-        if (err) {
-            console.log(err);
-            return cb('Internal error', null);
-        }
+    const account_select = await pool.query('select balance_bns, active, block, owner_filled from account where id = ?', [id]);
 
-        if (rows.length === 0)
-            return cb('Карта не найдена', null);
+    if (account_select[0].length === 0)
+        return {error: 'Карта не найдена'};
 
-        const account = rows[0];
+    const account = account_select[0][0];
 
-        if (account.active === 0 || account.block !== 0)
-            return cb('Карта заблокирована', null);
+    if (account.active === 0 || account.block !== 0)
+        return {error: 'Карта заблокирована'};
 
-        if (account.balance_bns < amount)
-            return cb('Недосточный баланс', null);
+    if (account.balance_bns < amount)
+        return {error: 'Недосточный баланс'};
 
-        const new_balance = currency(account.balance_bns).subtract(amount);
+    const new_balance = currency(account.balance_bns).subtract(amount);
 
-        return cb(false, {new_balance: new_balance});
-    });
+    return {new_balance: new_balance};
 }
-
 
 export default { post };
