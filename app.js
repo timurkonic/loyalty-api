@@ -29,6 +29,6 @@ router.get('/account/:id', account.get);
 router.post('/transaction', transaction.post);
 
 const port = process.env.PORT || 8080;
-app.listen(port, () => {
+app.listen(port, '0.0.0.0', () => {
     console.log(`Listening on port ${port}`);
 });
