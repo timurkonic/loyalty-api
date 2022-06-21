@@ -2,24 +2,8 @@ const express = require('express');
 const app = express();
 const router = express.Router();
 const bodyParser = require('body-parser');
-const mysql = require('mysql2');
 
-const dbhost = process.env.DBHOST || 'localhost';
-const dbname = process.env.DBNAME || 'loyalty';
-const dbuser = process.env.DBUSER || 'loyalty';
-const dbpass = process.env.DBPASS || 'password';
-
-console.log(`Using database ${dbuser}@${dbname} at ${dbhost}`);
-
-const pool = mysql.createPool({
-    host: dbhost,
-    database: dbname,
-    user: dbuser,
-    password: dbpass,
-    waitForConnections: true,
-    connectionLimit: 20,
-    queueLimit: 0
-});
+const pool = require('./modules/pool.js');
 
 const processError = (err, req, res, next) => {
     if (err)
