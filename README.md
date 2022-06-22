@@ -7,7 +7,7 @@
 - docker-ce
 - docker-compose-plugin
 
-## Сборка контейнера
+## Сборка образа
 
 ```
 git clone https://github.com/timurkonic/loyalty-api
