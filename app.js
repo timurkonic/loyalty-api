@@ -22,7 +22,7 @@ const processError = (err, req, res, next) => {
 app.use(checkApiKey);
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
-app.use('/api/v1/', router);
+app.use('/api/v2/', router);
 app.use(processError);
 
 router.get('/account/:id', account.get);
