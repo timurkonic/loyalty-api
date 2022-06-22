@@ -10,9 +10,13 @@ const post = async (req, res, next) => {
 
     try {
         switch (trns.type) {
-            case 'bonus':
+            case 'addbonus':
+                return res.json(await addbonus(trns.account, trns.amount, host, trns.cassa, trns.chek_sn));
+            case 'addruble':
+                return res.json(await addruble(trns.account, trns.amount, host, trns.cassa, trns.chek_sn));
+            case 'paybonus':
                 return res.json(await paybonus(trns.account, trns.amount, host, trns.cassa, trns.chek_sn));
-            case 'ruble':
+            case 'payruble':
                 return res.json(await payruble(trns.account, trns.amount, host, trns.cassa, trns.chek_sn));
             default:
                 return res.json({error: 'Неизвестный тип транзакции'});
@@ -36,32 +40,67 @@ const del = async (req, res, next) => {
     }
 }
 
-
-const payruble = async (id, amount, host, cassa, chek_sn) => {
-    return doTransaction(connection => pay(connection, {
+const addruble = async (id, amount, host, cassa, chek_sn) => {
+    return doTransaction(connection => createTransaction(connection, {
         id: id, 
         amount: amount,
         host: host,
         cassa: cassa,
         chek_sn: chek_sn,
         type: "ruble",
-        transaction_type: 0
+        transaction_type: 1,
+        checkBalance: false,
+        checkBlock: false,
+        checkOwnerFilled: false
     }));
 };
 
-const paybonus = async (id, amount, host, cassa, chek_sn) => {
-    return doTransaction(connection => pay(connection, {
+const addbonus = async (id, amount, host, cassa, chek_sn) => {
+    return doTransaction(connection => createTransaction(connection, {
         id: id, 
         amount: amount,
         host: host,
         cassa: cassa,
         chek_sn: chek_sn,
         type: "bonus",
-        transaction_type: 5
+        transaction_type: 4,
+        checkBalance: false,
+        checkBlock: false,
+        checkOwnerFilled: false
     }));
 };
 
-const pay = async (connection, options) => {
+const payruble = async (id, amount, host, cassa, chek_sn) => {
+    return doTransaction(connection => createTransaction(connection, {
+        id: id, 
+        amount: - amount,
+        host: host,
+        cassa: cassa,
+        chek_sn: chek_sn,
+        type: "ruble",
+        transaction_type: 0,
+        checkBalance: true,
+        checkBlock: true,
+        checkOwnerFilled: false
+    }));
+};
+
+const paybonus = async (id, amount, host, cassa, chek_sn) => {
+    return doTransaction(connection => createTransaction(connection, {
+        id: id, 
+        amount: - amount,
+        host: host,
+        cassa: cassa,
+        chek_sn: chek_sn,
+        type: "bonus",
+        transaction_type: 5,
+        checkBalance: true,
+        checkBlock: true,
+        checkOwnerFilled: true
+    }));
+};
+
+const createTransaction = async (connection, options) => {
     const account_select = await connection.query('select balance, balance_bns, active, block, owner_filled from account where id = ?', [options.id]);
 
     if (account_select[0].length === 0)
@@ -69,17 +108,20 @@ const pay = async (connection, options) => {
 
     const account = account_select[0][0];
 
-    if (account.active === 0 || account.block !== 0)
+    if (options.checkBlock && (account.active === 0 || account.block !== 0))
         return {error: 'Карта заблокирована'};
+
+    if (options.checkOwnerFilled && account.owner_filled === 0)
+        return {error: 'Карта не активирована'};
 
     const amount_ruble = options.type === "ruble" ? options.amount : 0;
     const amount_bonus = options.type === "bonus" ? options.amount : 0;
 
-    if (account.balance < amount_ruble || account.balance_bns < amount_bonus)
-        return {error: 'Недосточный баланс'};
+    const new_balance_ruble = currency(account.balance).add(amount_ruble).value;
+    const new_balance_bonus = currency(account.balance_bns).add(amount_bonus).value;
 
-    const new_balance_ruble = currency(account.balance).subtract(amount_ruble).value;
-    const new_balance_bonus = currency(account.balance_bns).subtract(amount_bonus).value;
+    if (options.checkBalance && (new_balance_ruble < 0 || new_balance_bonus < 0))
+        return {error: 'Недосточный баланс'};
 
     const select_now = await connection.query('select CURRENT_TIMESTAMP() as ts');
     const ts_now = select_now[0][0].ts;
@@ -89,9 +131,9 @@ const pay = async (connection, options) => {
         ts: ts_now,
         type: options.transaction_type,
         balance: new_balance_ruble,
-        amount: - amount_ruble,
+        amount: amount_ruble,
         balance_bns: new_balance_bonus,
-        amount_bns: - amount_bonus,
+        amount_bns: amount_bonus,
         host: options.host,
         cassa: options.cassa,
         chek_sn: options.chek_sn
@@ -99,12 +141,11 @@ const pay = async (connection, options) => {
 
     await connection.query('update account set balance = ?, balance_bns = ? where id = ?', [new_balance_ruble, new_balance_bonus, options.id]);
 
-    const transaction_id = options.id + ts_now.replaceAll(/\D/ig, '');
-    return {transaction_id: transaction_id, new_balance: new_balance_ruble, new_balance_bns: new_balance_bonus};
+    return {transaction_id: getTransactionId(options.id, ts_now), new_balance: new_balance_ruble, new_balance_bns: new_balance_bonus};
 }
 
 const rollback = async (connection, transaction_id) => {
-    const accountTs = extractAccountTs(transaction_id);
+    const accountTs = parseTransactionId(transaction_id);
 
     const account_select = await connection.query('select balance, balance_bns from account where id = ?', [accountTs.account]);
 
@@ -149,8 +190,11 @@ const doTransaction = async (f) => {
     }
 }
 
+const getTransactionId = (account, ts) => {
+    return account + ts.replaceAll(/\D/ig, '');
+}
 
-const extractAccountTs = (transaction_id) => {
+const parseTransactionId = (transaction_id) => {
     const account = transaction_id.substring(0, 13);
     const regex = /(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/;
     const da = regex.exec(transaction_id.substring(13)); 
