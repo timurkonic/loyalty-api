@@ -13,7 +13,7 @@ const post = async (req, res, next) => {
                 return res.json({error: 'Неизвестный тип транзакции'});
         }
     }
-    catch {e} {
+    catch (e) {
         console.log(e);
         return res.json({error: "Internal error"});
     }
@@ -23,25 +23,26 @@ const paybonus = async (id, amount, host, cassa, chek_sn) => {
     if (amount <= 0)
         return {error: 'Неверная сумма списания'};
 
-    const account_select = await pool.query('select balance, balance_bns, active, block, owner_filled from account where id = ?', [id]);
-
-    if (account_select[0].length === 0)
-        return {error: 'Карта не найдена'};
-
-    const account = account_select[0][0];
-
-    if (account.active === 0 || account.block !== 0)
-        return {error: 'Карта заблокирована'};
-
-    if (account.balance_bns < amount)
-        return {error: 'Недосточный баланс'};
-
-    const new_balance_bns = currency(account.balance_bns).subtract(amount);
-
     const connection = await pool.getConnection();
+
     try {
         await connection.beginTransaction();
 
+        const account_select = await pool.query('select balance, balance_bns, active, block, owner_filled from account where id = ?', [id]);
+
+        if (account_select[0].length === 0)
+            return {error: 'Карта не найдена'};
+    
+        const account = account_select[0][0];
+    
+        if (account.active === 0 || account.block !== 0)
+            return {error: 'Карта заблокирована'};
+    
+        if (account.balance_bns < amount)
+            return {error: 'Недосточный баланс'};
+    
+        const new_balance_bns = currency(account.balance_bns).subtract(amount);
+    
         await connection.query('insert into transaction set ?', {
             account: id,
             type: 5,
@@ -56,14 +57,17 @@ const paybonus = async (id, amount, host, cassa, chek_sn) => {
         await connection.query('update account set balance_bns = balance_bns - ? where id = ?', [amount, id]);
 
         await connection.commit();
+        console.log("commit");
         return {new_balance_bns: new_balance_bns};
     }
     catch (e) {
         console.log(e);
         await connection.rollback();
+        console.log("rollback");
         return {error: 'Internal error'};
     }
     finally {
+        console.log("release");
         await connection.release();
     }
 }
