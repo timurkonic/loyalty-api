@@ -41,10 +41,14 @@ const paybonus = async (id, amount, host, cassa, chek_sn) => {
         if (account.balance_bns < amount)
             return {error: 'Недосточный баланс'};
     
-        const new_balance_bns = currency(account.balance_bns).subtract(amount);
-    
+        const new_balance_bns = currency(account.balance_bns).subtract(amount).value;
+
+        const select_now = await connection.query('select CURRENT_TIMESTAMP() as ts');
+        const ts_now = select_now[0][0].ts;
+
         await connection.query('insert into transaction set ?', {
             account: id,
+            ts: ts_now,
             type: 5,
             balance: account.balance,
             amount_bns: amount,
@@ -54,20 +58,19 @@ const paybonus = async (id, amount, host, cassa, chek_sn) => {
             chek_sn: chek_sn
         });
 
-        await connection.query('update account set balance_bns = balance_bns - ? where id = ?', [amount, id]);
+        await connection.query('update account set balance_bns = ? where id = ?', [new_balance_bns, id]);
 
         await connection.commit();
-        console.log("commit");
-        return {new_balance_bns: new_balance_bns};
+
+        const transaction_id = id + ts_now.toISOString().replaceAll(/\D/ig, '');
+        return {transaction_id: transaction_id, new_balance_bns: new_balance_bns};
     }
     catch (e) {
         console.log(e);
         await connection.rollback();
-        console.log("rollback");
         return {error: 'Internal error'};
     }
     finally {
-        console.log("release");
         await connection.release();
     }
 }
