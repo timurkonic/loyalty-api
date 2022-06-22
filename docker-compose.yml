@@ -3,11 +3,11 @@ version: "3"
 services:
   server:
     build: ./
-    ports:
-      - 5000:8080
     environment:
       - DBHOST
       - DBNAME
       - DBUSER
       - DBPASS
       - APIKEY
+      - PORT
+    network_mode: "host"
