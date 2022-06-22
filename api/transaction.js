@@ -18,6 +18,8 @@ const post = async (req, res, next) => {
                 return res.json(await paybonus(trns.account, trns.amount, host, trns.cassa, trns.chek_sn));
             case 'payruble':
                 return res.json(await payruble(trns.account, trns.amount, host, trns.cassa, trns.chek_sn));
+            case 'retruble':
+                return res.json(await retruble(trns.account, trns.amount, host, trns.cassa, trns.chek_sn));
             default:
                 return res.json({error: 'Неизвестный тип транзакции'});
         }
@@ -97,6 +99,21 @@ const paybonus = async (id, amount, host, cassa, chek_sn) => {
         checkBalance: true,
         checkBlock: true,
         checkOwnerFilled: true
+    }));
+};
+
+const retruble = async (id, amount, host, cassa, chek_sn) => {
+    return doTransaction(connection => createTransaction(connection, {
+        id: id, 
+        amount: amount,
+        host: host,
+        cassa: cassa,
+        chek_sn: chek_sn,
+        type: "ruble",
+        transaction_type: 0,
+        checkBalance: false,
+        checkBlock: false,
+        checkOwnerFilled: false
     }));
 };
 
