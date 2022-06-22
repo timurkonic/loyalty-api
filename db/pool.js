@@ -14,5 +14,9 @@ export default mysql.createPool({
     password: dbpass,
     waitForConnections: true,
     connectionLimit: 50,
-    queueLimit: 100
+    queueLimit: 100,
+    dateStrings: [
+        'DATE',
+        'DATETIME'
+    ]
 });

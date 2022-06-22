@@ -27,6 +27,7 @@ app.use(processError);
 
 router.get('/account/:id', account.get);
 router.post('/transaction', transaction.post);
+router.delete('/transaction/:id', transaction.del);
 
 const port = process.env.PORT || 8080;
 app.listen(port, '0.0.0.0', () => {
