@@ -13,6 +13,6 @@ export default mysql.createPool({
     user: dbuser,
     password: dbpass,
     waitForConnections: true,
-    connectionLimit: 20,
-    queueLimit: 0
+    connectionLimit: 50,
+    queueLimit: 100
 });
