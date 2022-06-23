@@ -14,7 +14,8 @@ class AccountController {
                 return res.json(result);
         }
         catch (e) {
-            logger.error(e);
+            console.log(e);
+            logger.error(e.message);
             return res.status(500).json({error: "Internal error"});
         }
     }

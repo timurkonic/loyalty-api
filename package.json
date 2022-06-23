@@ -6,9 +6,6 @@
     "author": "Timur Konic <timur.konic@gmail.com>",
     "license": "MIT",
     "main": "app.js",
-    "keywords": [
-      "rkeeper"
-    ],
     "dependencies": {
       "express": "^4.18.1",
       "body-parser": "^1.20.0",
