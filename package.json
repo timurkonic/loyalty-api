@@ -1,5 +1,5 @@
 {
-    "name": "rkeeper-api",
+    "name": "loyalty-api",
     "version": "1.0.0",
     "type": "module",
     "description": "GRINN Loyalty API",
