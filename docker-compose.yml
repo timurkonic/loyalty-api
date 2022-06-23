@@ -14,4 +14,4 @@ services:
       - LOGPATH
     network_mode: "host"
     volumes:
-    - /home/docker/loyalty-api-logs/:/logs
+      - /home/docker/loyalty-api-logs/:/logs
