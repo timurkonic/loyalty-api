@@ -1,5 +1,6 @@
 import doTransaction from '../db/doTransaction.js';
 import currency from 'currency.js';
+import logger from '../logger/logger.js';
 
 class TransactionService {
 
@@ -113,7 +114,11 @@ class TransactionService {
         });
         await connection.query('update account set balance = ?, balance_bns = ? where id = ?', [new_balance_ruble, new_balance_bonus, options.account]);
 
-        return {transaction_id: this.getTransactionId(options.account, ts_now), new_balance: new_balance_ruble, new_balance_bns: new_balance_bonus};
+        const transaction_id = this.getTransactionId(options.account, ts_now);
+
+        logger.info({f: 'dbCreateTransaction', ...options, transaction_id: transaction_id, new_balance: new_balance_ruble, new_balance_bns: new_balance_bonus});
+
+        return {transaction_id: transaction_id, new_balance: new_balance_ruble, new_balance_bns: new_balance_bonus};
     }
 
     async dbDeleteTransaction(connection, transaction_id) {

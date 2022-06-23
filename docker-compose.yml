@@ -10,4 +10,8 @@ services:
       - DBPASS
       - APIKEY
       - PORT
+      - LOGLEVEL
+      - LOGPATH
     network_mode: "host"
+    volumes:
+    - /home/docker/loyalty-api-logs/:/logs

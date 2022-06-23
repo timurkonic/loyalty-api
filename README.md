@@ -25,3 +25,5 @@ docker compose build
 - DBPASS - пароль MySQL
 - APIKEY - ключ API, ожидаемый от клиентов
 - PORT - порт
+- LOGLEVEL - уровень логирования
+- LOGPATH - директория логов
