@@ -145,6 +145,8 @@ class TransactionService {
     
         await connection.query('update account set balance = ?, balance_bns = ? where id = ?', [new_balance_ruble, new_balance_bonus, accountTs.account]);
     
+        logger.info({f: 'dbDeleteTransaction', transaction_id: transaction_id, new_balance: new_balance_ruble, new_balance_bns: new_balance_bonus});
+
         return {transaction_id: transaction_id, new_balance: new_balance_ruble, new_balance_bns: new_balance_bonus};
     }
 
