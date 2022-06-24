@@ -6,7 +6,7 @@ class TransactionController {
     async createTransaction(req, res) {
         try {
             const trns = req.body;
-            const host = req.socket.remoteAddress;
+            const host = req.get('X-Real-IP') || req.socket.remoteAddress;
 
             logger.debug({f: 'createTransaction', trns: trns, host: host});
             const result = await TransactionService.createTransaction({...trns, host: host});
