@@ -19,6 +19,12 @@ class AccountService {
         const select_birthday = await pool.query('select account from action_birthday where start_dt <= curdate() and end_dt >= curdate() and account = ?', [id]);
         account['birthday_action'] = select_birthday[0].length > 0;
 
+        // Add field for test
+        if (id === '9900000175474') {
+            account['receipt_phone'] = true;
+            account['receipt_email'] = true;
+        }
+
         return account;
     }
 
