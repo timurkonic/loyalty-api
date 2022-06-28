@@ -21,7 +21,7 @@ class AccountService {
 
         // Add field for test
         if (id === '9900000175474') {
-            account['receipt_phone'] = true;
+            account['receipt_phone'] = false;
             account['receipt_email'] = true;
         }
 
