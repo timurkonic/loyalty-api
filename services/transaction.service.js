@@ -24,7 +24,8 @@ class TransactionService {
                     transaction_type: 4,
                     checkBalance: false,
                     checkBlock: false,
-                    checkOwnerFilled: false
+                    checkOwnerFilled: false,
+                    checkPassword: false
                 };
             case 'addruble':
                 return {
@@ -33,7 +34,8 @@ class TransactionService {
                     transaction_type: 1,
                     checkBalance: false,
                     checkBlock: false,
-                    checkOwnerFilled: false
+                    checkOwnerFilled: false,
+                    checkPassword: false
                 };
             case 'paybonus':
                 return {
@@ -43,7 +45,8 @@ class TransactionService {
                     transaction_type: 5,
                     checkBalance: true,
                     checkBlock: true,
-                    checkOwnerFilled: true
+                    checkOwnerFilled: true,
+                    checkPassword: false
                 };
             case 'payruble':
                 return {
@@ -53,7 +56,8 @@ class TransactionService {
                     transaction_type: 0,
                     checkBalance: true,
                     checkBlock: true,
-                    checkOwnerFilled: false
+                    checkOwnerFilled: false,
+                    checkPassword: true
                 };
             case 'retruble':
                 return {
@@ -62,7 +66,8 @@ class TransactionService {
                     transaction_type: 0,
                     checkBalance: false,
                     checkBlock: false,
-                    checkOwnerFilled: false
+                    checkOwnerFilled: false,
+                    checkPassword: true
                 };
             default:
                 return false;
@@ -75,7 +80,7 @@ class TransactionService {
     }
 
     async dbCreateTransaction (connection, options) {
-        const account_select = await connection.query('select balance, balance_bns, active, block, owner_filled from account where id = ?', [options.account]);
+        const account_select = await connection.query('select balance, balance_bns, active, block, owner_filled, pass from account where id = ?', [options.account]);
     
         if (account_select[0].length === 0)
             return {error: 'Карта не найдена'};
@@ -96,7 +101,10 @@ class TransactionService {
     
         if (options.checkBalance && (new_balance_ruble < 0 || new_balance_bonus < 0))
             return {error: 'Недосточный баланс'};
-    
+
+        if (options.checkPassword && (options.pass !== account.pass))
+            return {error: 'Неверный пароль'};
+
         const select_now = await connection.query('select CURRENT_TIMESTAMP() as ts');
         const ts_now = select_now[0][0].ts;
     
