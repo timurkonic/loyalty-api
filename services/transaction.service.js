@@ -1,4 +1,5 @@
 import doTransaction from '../db/doTransaction.js';
+import pool from '../db/pool.js';
 import currency from 'currency.js';
 import logger from '../logger/logger.js';
 
@@ -158,6 +159,17 @@ class TransactionService {
         return {transaction_id: transaction_id, new_balance: new_balance_ruble, new_balance_bns: new_balance_bonus};
     }
 
+    async getTransactions(account) {
+        const transaction_select = await pool.query(`
+            select t.ts, tt.name, t.amount, t.balance, t.amount_bns, t.balance_bns
+            from transaction t
+            join transaction_type tt on tt.id = t.type
+            where t.account = ?
+            order by t.ts`, [account]);
+    
+        return transaction_select[0];
+    }
+    
     getTransactionId(account, ts) {
         return account + ts.replaceAll(/\D/ig, '');
     }
@@ -169,7 +181,6 @@ class TransactionService {
         const ts = `${da[1]}-${da[2]}-${da[3]} ${da[4]}:${da[5]}:${da[6]}`;
         return {account: account, ts: ts};
     }
-    
 
 }
 

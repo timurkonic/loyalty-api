@@ -9,7 +9,8 @@ class UserService {
             return {error: 'Неверный логин или пароль'};
 
         const user = { id: id };
-        const token = jsonwebtoken.sign({ user: user }, process.env.JWTSECRET);
+        const exp = Math.floor(Date.now() / 1000) + (60 * 60 * 24 * 30); // 30 days
+        const token = jsonwebtoken.sign({ user: user, exp: exp}, process.env.JWTSECRET);
         return { token: token };
     }
 
