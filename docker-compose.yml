@@ -9,6 +9,7 @@ services:
       - DBUSER
       - DBPASS
       - APIKEY
+      - JWTSECRET
       - PORT
       - LOGLEVEL
       - LOGPATH
