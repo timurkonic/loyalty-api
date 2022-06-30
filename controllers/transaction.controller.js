@@ -10,7 +10,7 @@ class TransactionController {
 
             logger.debug({f: 'createTransaction', trns: trns, host: host});
             const result = await TransactionService.createTransaction({...trns, host: host});
-            logger.debug({f: 'createTransaction', result: result});
+            logger.debug({f: 'createTransaction', result: result, host: host});
 
             if (result && result.error)
                 return res.status(400).json(result);
