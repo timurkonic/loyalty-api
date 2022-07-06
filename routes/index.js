@@ -4,9 +4,11 @@ import userRoutes from './user.routes.js';
 import accountRoutes from './account.routes.js';
 import transactionRoutes from './transaction.routes.js';
 import apikey from '../middleware/apikey.middleware.js';
+import cors from '../middleware/cors.middleware.js';
 
 const router = express.Router();
 
+router.use(cors);
 router.use('/user', userRoutes);
 router.use(apikey);
 router.use('/account', accountRoutes);
