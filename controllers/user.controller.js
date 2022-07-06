@@ -14,6 +14,8 @@ class UserController {
             logger.debug({f: 'login', result: result});
             if (!result)
                 return res.status(404).json({ error: 'Ошибка аутентификации' });
+            if (result && result.error)
+                return res.status(401).json(result);
             return res.json(result);
         }
         catch (e) {
