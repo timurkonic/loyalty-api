@@ -106,8 +106,7 @@ class TransactionService {
         if (options.checkPassword && (options.pass !== account.pass))
             return {error: 'Неверный пароль'};
 
-        const select_now = await connection.query('select CURRENT_TIMESTAMP() as ts');
-        const ts_now = select_now[0][0].ts;
+        const ts_now = await this.getCurrentTs(connection, options.account);
     
         await connection.query('insert into transaction set ?', {
             account: options.account,
@@ -128,6 +127,21 @@ class TransactionService {
         logger.info({f: 'dbCreateTransaction', ...options, transaction_id: transaction_id, new_balance: new_balance_ruble, new_balance_bns: new_balance_bonus});
 
         return {transaction_id: transaction_id, new_balance: new_balance_ruble, new_balance_bns: new_balance_bonus};
+    }
+
+    async getCurrentTs(connection, account) {
+        let dt = new Date(new Date().getTime() - (new Date().getTimezoneOffset() * 60000));
+        do {
+            let select_check = await connection.query('select account from transaction where account = ? and ts = ?', [account, this.convertToTs(dt)]);
+            if (!select_check[0][0])
+                return this.convertToTs(dt);
+            dt.setSeconds(dt.getSeconds() + 1);
+        }
+        while (true);
+    }
+
+    convertToTs(dt) {
+        return dt.toISOString().slice(0, 19).replace('T', ' ');
     }
 
     async dbDeleteTransaction(connection, transaction_id) {
