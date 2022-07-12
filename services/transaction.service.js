@@ -175,7 +175,7 @@ class TransactionService {
 
     async getTransactions(account) {
         const transaction_select = await pool.query(`
-            select t.ts, tt.name, t.amount, t.balance, t.amount_bns, t.balance_bns
+            select t.ts, t.type, tt.name, t.amount, t.balance, t.amount_bns, t.balance_bns
             from transaction t
             join transaction_type tt on tt.id = t.type
             where t.account = ?
